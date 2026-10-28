@@ -1,0 +1,99 @@
+# Configuración de cordones.py
+# Rutas relativas: respecto de la carpeta de este archivo.
+# Unidades: metros. Offset positivo = izquierda del eje (sentido de digitalización).
+
+entrada:
+  nube: "datos/nube.laz"        # archivo .las/.laz o patrón con tiles: "datos/tiles/*.laz"
+  ejes: "datos/ejes.dxf"        # .dxf (polilíneas 2D) o .shp
+  capa_ejes: null               # DXF: solo esta capa (null = todas las polilíneas)
+  campo_nombre: null            # SHP: campo con el nombre de la calle
+  epsg: 5347                    # informativo (LandXML). Ej.: POSGAR 2007 faja 5 = 5347
+
+salida:
+  carpeta: "salida"
+  prefijo: "cordones"
+  landxml: true
+
+lectura:
+  tamano_bloque: 2000000        # puntos por bloque de lectura LAS/LAZ
+  cache: true                   # guarda el recorte de cada eje (acelera la calibración)
+
+clasificacion:
+  modo: auto                    # clase2 | smrf | csf | auto (clase 2 si existe, si no SMRF)
+  clase_suelo: 2
+  fraccion_min_suelo: 0.05
+  buffer_extra: 15.0            # contexto extra para SMRF/CSF
+  smrf: {cell: 1.0, slope: 0.15, window: 18.0, threshold: 0.5, scalar: 1.25}
+  csf: {resolution: 0.5, rigidness: 3, threshold: 0.5, smooth: true}
+
+geometria:
+  ancho_calzada: 9.0            # de cordón a cordón
+  ancho_vereda: 3.0
+  margen: 1.0
+  tolerancia_offset: 1.5        # d se busca en [ancho/2 - tol, ancho/2 + tol]
+  u_min: 0.0                    # ignorar puntos a menos de esto del eje
+
+# Sobreescrituras por eje (nombre del eje = CAPA_HANDLE en DXF, o campo_nombre en SHP)
+ejes_parametros: {}
+#  EJES_2F:
+#    ancho_calzada: 7.5
+#    ancho_vereda: 2.5
+
+ventana:
+  longitud: 4.0
+  paso: 1.0
+  min_puntos_calzada: 40
+  min_puntos_vereda: 25
+
+ajuste:
+  loss: soft_l1                 # soft_l1 | huber | cauchy
+  f_scale: 0.06                 # ≈ ruido vertical esperado
+  h_min: 0.05
+  h_max: 0.30
+  ancho_transicion: 0.05        # suavizado del escalón (sigmoide)
+  paso_busqueda_d: 0.05
+  pend_calzada: [-0.08, 0.08]
+  pend_vereda: [-0.08, 0.08]
+  pend_longitudinal: [-0.15, 0.15]
+
+confianza:
+  n_ref: 300
+  rms_bueno: 0.05
+  rms_malo: 0.15
+  escala_bic: 10.0
+  conf_min: 0.30                # por debajo: la ventana se descarta
+  conf_alta: 0.60               # por debajo: el tramo va a BAJA_CONFIANZA
+  se_h_max: 0.04                # error estándar máximo de h para darla por medida
+
+raster:
+  usar: auto                    # auto | si | no
+  campo: auto                   # auto | intensidad | rgb | ambos
+  resolucion: 0.25
+  ancho_kernel: 2               # celdas a cada lado del borde
+  correccion_offset: 0.0        # p.ej. +0.30 si el borde detectado es asfalto/cuneta de H° y no el cordón
+  signo_contraste: cualquiera   # cualquiera | vereda_mas_clara | vereda_mas_oscura
+  ratio_min: 3.0
+  ratio_max: 8.0
+  peso: 0.7
+  tolerancia_combinacion: 0.30
+
+postproceso:
+  ventana_mediana: 9.0
+  umbral_offset: 0.25
+  umbral_z: 0.08
+  umbral_h: 0.06
+  hueco_max: 10.0               # huecos menores se interpolan; mayores cortan la línea
+  tramo_min: 4.0
+  suavizado: savgol             # savgol | spline | ninguno
+  savgol_ventana: 7.0
+  savgol_orden: 2
+  spline_sigma: {offset: 0.05, z: 0.02, h: 0.02}
+  h_tipica: 0.16
+
+graficos:
+  generar: true
+  cada_n_ventanas: 50
+  dpi: 110
+
+debug:
+  eje: 0                        # índice o nombre del eje para --debug
