@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+salida/
+ejemplo/datos/
+.pytest_cache/

@@ -1,0 +1,9 @@
+numpy>=1.24
+scipy>=1.10
+laspy[lazrs]>=2.4      # lectura LAS/LAZ (lazrs = backend LAZ)
+ezdxf>=1.1
+pyyaml>=6.0
+matplotlib>=3.7
+pyshp>=2.3             # ejes en shapefile
+# Opcional, solo si la nube NO trae suelo clasificado (clase 2):
+#   conda install -c conda-forge pdal python-pdal
